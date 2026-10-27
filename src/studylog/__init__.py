@@ -1,10 +1,35 @@
 import argparse
+import json
+from pathlib import Path
+from datetime import date
+
+DATA_FILE = Path.home() / ".studylog.json"
+
+def load():
+    if not DATA_FILE.exists():
+        return []
+    with open(DATA_FILE,) as f:
+        return json.load(f)
+
+def save(sessions):
+    with open(DATA_FILE, "w") as f:
+        json.dump(sessions, f, indent=2)
 
 def cmd_add(args):
-    print(f"Adding {args.hours} hours of {args.topic}")
+    sessions= load()
+    sessions.append(
+        {
+            "date": date.today().isoformat(),
+            "topic": args.topic,
+            "hours": args.hours,
+        }
+    )
+    save(sessions)
+    print(f"Logged {args.hours} hours of {args.topic}")
 
 def cmd_list(args):
-    print("Listing study logs")
+    sessions = load()
+    print(f"{len(sessions)} study sessions:")
 
 def main():
     parser=argparse.ArgumentParser(prog="studylog",description="Track your Sessions")

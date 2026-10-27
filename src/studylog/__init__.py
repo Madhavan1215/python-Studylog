@@ -1,7 +1,9 @@
 import argparse
 import json
+import sys
 from pathlib import Path
 from datetime import date
+
 
 DATA_FILE = Path.home() / ".studylog.json"
 
@@ -16,6 +18,10 @@ def save(sessions):
         json.dump(sessions, f, indent=2)
 
 def cmd_add(args):
+    if args.hours <= 0 or args.hours > 16:
+        print("Error: hours must be more than 0 and at most 16.", file=sys.stderr)
+        sys.exit(1)
+
     sessions= load()
     sessions.append(
         {
@@ -54,6 +60,19 @@ def cmd_stats(args):
     for topic, hours in sorted(totals.items(), key=lambda x: x[1], reverse=True):
         print(f"{topic:<20}{hours:>6.1f}")
 
+def cmd_delete(args):
+    sessions = load()
+    if args.number<1 or args.number>len(sessions):
+        print(
+            f"Error: no session numbered {args.number}. Run 'studylog list to see the numbers.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    removed=sessions.pop(args.number -1)
+    save(sessions)
+    print(f"Deleted: {removed['topic']}, {removed['hours']} hours on {removed['date']}")
+
 
 
 def main():
@@ -70,6 +89,12 @@ def main():
 
     stats_parser= subparsers.add_parser("stats" , help="show total hours per topic")
     stats_parser.set_defaults(func=cmd_stats)
+
+    delete_parser = subparsers.add_parser("delete" ,help="delelte a session from its number ")
+    delete_parser.add_argument("number" , type=int)
+    delete_parser.set_defaults(func=cmd_delete)
+
+
 
     args = parser.parse_args()
     args.func(args)

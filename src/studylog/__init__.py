@@ -29,7 +29,13 @@ def cmd_add(args):
 
 def cmd_list(args):
     sessions = load()
-    print(f"{len(sessions)} study sessions:")
+    if not sessions:
+        print("No study sessions logged yet. Use 'studylog add <topic> <hours>' to log a new session.")
+        return
+
+    print(f"{'#':<4}{'Date':<12}{'Topic':<20}{'Hours':>6}")
+    for i, s in enumerate(sessions, start=1):
+        print(f"{i:<4}{s['date']:<12}{s['topic']:<20}{s['hours']:>6.1f}")
 
 def main():
     parser=argparse.ArgumentParser(prog="studylog",description="Track your Sessions")

@@ -28,6 +28,7 @@ def cmd_add(args):
     print(f"Logged {args.hours} hours of {args.topic}")
 
 def cmd_list(args):
+    
     sessions = load()
     if not sessions:
         print("No study sessions logged yet. Use 'studylog add <topic> <hours>' to log a new session.")
@@ -36,6 +37,24 @@ def cmd_list(args):
     print(f"{'#':<4}{'Date':<12}{'Topic':<20}{'Hours':>6}")
     for i, s in enumerate(sessions, start=1):
         print(f"{i:<4}{s['date']:<12}{s['topic']:<20}{s['hours']:>6.1f}")
+
+def cmd_stats(args):
+    sessions = load()
+    
+    if not sessions:
+        print("No study sessions logged yet. Use 'studylog add <topic> <hours>' to log a new session.")
+        return
+    totals={}
+
+
+    for s in sessions:
+        totals[s["topic"]] = totals.get(s["topic"], 0) + s["hours"]
+    
+    print(f"{'Topic':<20}{'Hours':>6}")
+    for topic, hours in sorted(totals.items(), key=lambda x: x[1], reverse=True):
+        print(f"{topic:<20}{hours:>6.1f}")
+
+
 
 def main():
     parser=argparse.ArgumentParser(prog="studylog",description="Track your Sessions")
@@ -48,6 +67,9 @@ def main():
 
     list_parser= subparsers.add_parser("list" , help="show all study sessions")
     list_parser.set_defaults(func=cmd_list)
+
+    stats_parser= subparsers.add_parser("stats" , help="show total hours per topic")
+    stats_parser.set_defaults(func=cmd_stats)
 
     args = parser.parse_args()
     args.func(args)
